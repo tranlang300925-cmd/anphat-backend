@@ -123,6 +123,7 @@ app.post("/api/quotes", async (req, res) => {
 
 // Chạy server
 const PORT = process.env.PORT || 3001;
+console.log("SERVER VERSION: 2026-01-09 v2");
 app.listen(PORT, () => {
   console.log(`Server running at port ${PORT}`);
 });
