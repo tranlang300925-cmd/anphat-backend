@@ -7,6 +7,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 // Đường dẫn file lưu dữ liệu
 const DATA_FILE = path.join(__dirname, "quotes.json");
 
@@ -78,7 +88,6 @@ app.post("/api/quotes", async (req, res) => {
     res.status(500).json({ ok: false });
   }
 });
-
 // Chạy server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
