@@ -39,28 +39,44 @@ app.get("/api/quotes", requireAdminKey, (req, res) => {
 });
 
 // 2) Tạo báo giá mới (từ form)
-app.post("/api/quotes", (req, res) => {
-  const { fullname, phone, email, message } = req.body || {};
+app.post("/api/quotes", async (req, res) => {
+  try {
+    const { fullname, phone, email, message } = req.body;
 
-  // Validate tối thiểu
-  if (!fullname || !phone || !email || !message) {
-    return res.status(400).json({ ok: false, error: "Thiếu thông tin!" });
+    const quotes = readQuotes();
+    const item = {
+      id: Date.now(),
+      fullname,
+      phone,
+      email,
+      message,
+      createdAt: new Date().toISOString(),
+    };
+
+    quotes.unshift(item);
+    writeQuotes(quotes);
+
+    // ✅ GỬI MAIL
+    await transporter.sendMail({
+      from: `"An Phát" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL,
+      subject: "📩 Yêu cầu báo giá mới",
+      html: `
+        <h3>Khách hàng mới</h3>
+        <p><b>Họ tên:</b> ${fullname}</p>
+        <p><b>SĐT:</b> ${phone}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Nội dung:</b> ${message}</p>
+      `,
+    });
+
+    console.log("✅ Sent mail ok");
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.log("❌ Send mail failed:", err);
+    res.status(500).json({ ok: false });
   }
-
-  const quotes = readQuotes();
-  const item = {
-    id: Date.now(),
-    fullname: String(fullname).trim(),
-    phone: String(phone).trim(),
-    email: String(email).trim(),
-    message: String(message).trim(),
-    createdAt: new Date().toISOString(),
-  };
-
-  quotes.unshift(item);
-  writeQuotes(quotes);
-
-  res.json({ ok: true, item });
 });
 
 // Chạy server
